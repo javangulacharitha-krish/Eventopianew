@@ -15,7 +15,10 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ─── Database Setup ───────────────────────────────────────────────────────────
-const db = new Database('eventopia.db');
+const DB_PATH = process.env.NODE_ENV === 'production'
+  ? '/data/eventopia.db'
+  : path.join(__dirname, 'eventopia.db');
+const db = new Database(DB_PATH);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
