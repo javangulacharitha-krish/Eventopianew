@@ -1,0 +1,15 @@
+node_modules/
+backend/node_modules/
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+.env
+# temp build files
+gen_admin.ps1
+gen.ps1
+merge.js
+write_admin.js
+public/app_before.js
+public/app_after.js
+public/app_admin.js

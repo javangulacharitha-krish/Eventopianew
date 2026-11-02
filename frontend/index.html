@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eventopia | College Event Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        body, html {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f8fafc;
+        }
+
+        /* Strict View Switching to prevent white space */
+        .page-view {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .page-view.active {
+            display: flex; /* Login uses flex, others use block (set via JS) */
+            flex-direction: column;
+            animation: fadeInPage 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeInPage {
+            from { opacity: 0; transform: translateY(2px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .glass-morphism {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .event-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 35px -12px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        }
+        
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%       { transform: translateX(-8px); }
+            40%       { transform: translateX(8px); }
+            60%       { transform: translateX(-5px); }
+            80%       { transform: translateX(5px); }
+        }
+        .animate-shake { animation: shake 0.45s ease-in-out; }
+
+        /* Login page input autofill dark override */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus {
+            -webkit-text-fill-color: #fff;
+            -webkit-box-shadow: 0 0 0px 1000px rgba(255,255,255,0.05) inset;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+    </style>
+</head>
+<body class="selection:bg-indigo-100 selection:text-indigo-900">
+
+    <!-- Notification system -->
+    <div id="notification" class="fixed top-6 left-1/2 -translate-x-1/2 z-[200] bg-slate-900 text-white px-6 py-3 rounded-2xl flex items-center gap-3 shadow-2xl transition-all duration-500 opacity-0 translate-y-[-120%] pointer-events-none border border-white/10">
+        <i class="fas fa-sparkles text-indigo-400 text-sm"></i>
+        <span id="notification-text" class="text-xs font-bold"></span>
+    </div>
+
+    <!-- 1. LOGIN PORTAL (CENTERED FULL SCREEN) -->
+    <section id="view-login" class="page-view active h-screen bg-slate-950 flex items-center justify-center relative overflow-hidden">
+        <!-- Background Glow -->
+        <div class="absolute top-[-5%] left-[-5%] w-[400px] h-[400px] bg-indigo-600/20 rounded-full blur-[100px]"></div>
+        <div class="absolute bottom-[-5%] right-[-5%] w-[400px] h-[400px] bg-rose-600/20 rounded-full blur-[100px]"></div>
+        
+        <div class="max-w-sm w-full glass-morphism p-10 rounded-[2.5rem] shadow-2xl text-center relative z-10 border border-white/5 mx-4">
+            <div class="mb-6 flex justify-center">
+                <div class="btn-gradient p-5 rounded-3xl shadow-xl shadow-indigo-500/20 transform -rotate-3">
+                    <i class="fas fa-bolt-lightning text-3xl text-white"></i>
+                </div>
+            </div>
+            <h1 class="text-4xl font-black text-white mb-2 tracking-tighter">Eventopia</h1>
+            <p class="text-indigo-200/40 mb-8 font-medium text-sm">Elevate your campus experience.</p>
+            
+            <div class="space-y-3">
+                <button onclick="showLoginPage('admin')" class="w-full group flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all">
+                    <div class="flex items-center gap-4">
+                        <span class="w-10 h-10 flex items-center justify-center rounded-xl bg-blue-500 text-white shadow-md"><i class="fas fa-user-shield text-sm"></i></span>
+                        <div class="text-left leading-none">
+                            <span class="block text-white font-bold text-base">Admin</span>
+                            <span class="block text-slate-500 text-[10px] mt-0.5">System Console</span>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-slate-600 text-xs group-hover:text-white transition-all"></i>
+                </button>
+
+                <button onclick="showLoginPage('coordinator')" class="w-full group flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all">
+                    <div class="flex items-center gap-4">
+                        <span class="w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-500 text-white shadow-md"><i class="fas fa-people-group text-sm"></i></span>
+                        <div class="text-left leading-none">
+                            <span class="block text-white font-bold text-base">Coordinator</span>
+                            <span class="block text-slate-500 text-[10px] mt-0.5">Operations Hub</span>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-slate-600 text-xs group-hover:text-white transition-all"></i>
+                </button>
+
+                <button onclick="showLoginPage('student')" class="w-full group flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all">
+                    <div class="flex items-center gap-4">
+                        <span class="w-10 h-10 flex items-center justify-center rounded-xl bg-indigo-500 text-white shadow-md"><i class="fas fa-graduation-cap text-sm"></i></span>
+                        <div class="text-left leading-none">
+                            <span class="block text-white font-bold text-base">Student</span>
+                            <span class="block text-slate-500 text-[10px] mt-0.5">Campus Explorer</span>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-slate-600 text-xs group-hover:text-white transition-all"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 1b. ADMIN LOGIN PAGE -->
+    <section id="view-login-admin" class="page-view h-screen bg-slate-950 flex items-center justify-center relative overflow-hidden">
+        <div class="absolute top-[-5%] right-[-5%] w-[500px] h-[500px] bg-blue-600/15 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-indigo-600/10 rounded-full blur-[100px]"></div>
+
+        <div class="max-w-sm w-full glass-morphism p-10 rounded-[2.5rem] shadow-2xl relative z-10 border border-white/5 mx-4">
+            <button onclick="showView('login')" class="flex items-center gap-2 text-slate-500 hover:text-white text-[10px] font-black uppercase tracking-widest mb-8 transition-all">
+                <i class="fas fa-arrow-left text-xs"></i> Back
+            </button>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-14 h-14 flex items-center justify-center rounded-2xl bg-blue-500 shadow-lg shadow-blue-500/30">
+                    <i class="fas fa-user-shield text-xl text-white"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-white tracking-tighter leading-none">Admin Login</h2>
+                    <p class="text-slate-500 text-[10px] font-bold mt-1">System Console Access</p>
+                </div>
+            </div>
+
+            <form onsubmit="handleLogin(event,'admin')" class="space-y-4">
+                <div>
+                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Username</label>
+                    <div class="relative">
+                        <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-xs"></i>
+                        <input id="admin-username" type="text" required placeholder="admin" autocomplete="username"
+                            class="w-full pl-10 pr-4 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-600 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Password</label>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-xs"></i>
+                        <input id="admin-password" type="password" required placeholder="••••••••" autocomplete="current-password"
+                            class="w-full pl-10 pr-12 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-600 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                        <button type="button" onclick="togglePassword('admin-password', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400 transition-all">
+                            <i class="fas fa-eye text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="admin-login-error" class="hidden flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl">
+                    <i class="fas fa-circle-exclamation text-rose-400 text-xs"></i>
+                    <span class="text-rose-400 text-[10px] font-bold">Invalid credentials. Try admin / admin123</span>
+                </div>
+                <button type="submit" class="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-blue-500/20 active:scale-95 mt-2">
+                    Access Console <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                </button>
+            </form>
+            <p class="text-center text-slate-600 text-[9px] font-bold mt-6">Demo: <span class="text-slate-400">admin</span> / <span class="text-slate-400">admin123</span></p>
+        </div>
+    </section>
+
+    <!-- 1c. COORDINATOR LOGIN PAGE -->
+    <section id="view-login-coordinator" class="page-view h-screen bg-slate-950 flex items-center justify-center relative overflow-hidden">
+        <div class="absolute top-[-5%] left-[-5%] w-[500px] h-[500px] bg-emerald-600/15 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-teal-600/10 rounded-full blur-[100px]"></div>
+
+        <div class="max-w-sm w-full glass-morphism p-10 rounded-[2.5rem] shadow-2xl relative z-10 border border-white/5 mx-4">
+            <button onclick="showView('login')" class="flex items-center gap-2 text-slate-500 hover:text-white text-[10px] font-black uppercase tracking-widest mb-8 transition-all">
+                <i class="fas fa-arrow-left text-xs"></i> Back
+            </button>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-14 h-14 flex items-center justify-center rounded-2xl bg-emerald-500 shadow-lg shadow-emerald-500/30">
+                    <i class="fas fa-people-group text-xl text-white"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-white tracking-tighter leading-none">Coordinator</h2>
+                    <p class="text-slate-500 text-[10px] font-bold mt-1">Operations Hub Access</p>
+                </div>
+            </div>
+
+            <form onsubmit="handleLogin(event,'coordinator')" class="space-y-4">
+                <div>
+                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Username</label>
+                    <div class="relative">
+                        <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-xs"></i>
+                        <input id="coord-username" type="text" required placeholder="coordinator" autocomplete="username"
+                            class="w-full pl-10 pr-4 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-600 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Password</label>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-xs"></i>
+                        <input id="coord-password" type="password" required placeholder="••••••••" autocomplete="current-password"
+                            class="w-full pl-10 pr-12 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-600 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all">
+                        <button type="button" onclick="togglePassword('coord-password', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400 transition-all">
+                            <i class="fas fa-eye text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="coord-login-error" class="hidden flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl">
+                    <i class="fas fa-circle-exclamation text-rose-400 text-xs"></i>
+                    <span class="text-rose-400 text-[10px] font-bold">Invalid credentials. Try coordinator / coord123</span>
+                </div>
+                <button type="submit" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-emerald-500/20 active:scale-95 mt-2">
+                    Access Hub <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                </button>
+            </form>
+            <p class="text-center text-slate-600 text-[9px] font-bold mt-6">Demo: <span class="text-slate-400">coordinator</span> / <span class="text-slate-400">coord123</span></p>
+        </div>
+    </section>
+
+    <!-- 1d. STUDENT LOGIN PAGE -->
+    <section id="view-login-student" class="page-view h-screen bg-slate-950 flex items-center justify-center relative overflow-hidden">
+        <div class="absolute top-[-5%] right-[-5%] w-[500px] h-[500px] bg-indigo-600/15 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-violet-600/10 rounded-full blur-[100px]"></div>
+
+        <div class="max-w-sm w-full glass-morphism p-10 rounded-[2.5rem] shadow-2xl relative z-10 border border-white/5 mx-4">
+            <button onclick="showView('login')" class="flex items-center gap-2 text-slate-500 hover:text-white text-[10px] font-black uppercase tracking-widest mb-8 transition-all">
+                <i class="fas fa-arrow-left text-xs"></i> Back
+            </button>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-14 h-14 flex items-center justify-center rounded-2xl bg-indigo-500 shadow-lg shadow-indigo-500/30">
+                    <i class="fas fa-graduation-cap text-xl text-white"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-white tracking-tighter leading-none">Student Login</h2>
+                    <p class="text-slate-500 text-[10px] font-bold mt-1">Campus Explorer Access</p>
+                </div>
+            </div>
+
+            <form onsubmit="handleLogin(event,'student')" class="space-y-4">
+                <div>
+                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Student ID / Email</label>
+                    <div class="relative">
+                        <i class="fas fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-xs"></i>
+                        <input id="student-username" type="text" required placeholder="student@college.edu" autocomplete="username"
+                            class="w-full pl-10 pr-4 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-600 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Password</label>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-xs"></i>
+                        <input id="student-password" type="password" required placeholder="••••••••" autocomplete="current-password"
+                            class="w-full pl-10 pr-12 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-600 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                        <button type="button" onclick="togglePassword('student-password', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400 transition-all">
+                            <i class="fas fa-eye text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="student-login-error" class="hidden flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl">
+                    <i class="fas fa-circle-exclamation text-rose-400 text-xs"></i>
+                    <span class="text-rose-400 text-[10px] font-bold">Invalid credentials. Try student / student123</span>
+                </div>
+                <button type="submit" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-indigo-500/20 active:scale-95 mt-2">
+                    Explore Campus <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                </button>
+            </form>
+            <p class="text-center text-slate-600 text-[9px] font-bold mt-6">Demo: <span class="text-slate-400">student</span> / <span class="text-slate-400">student123</span></p>
+        </div>
+    </section>
+
+    <!-- Navigation Template -->
+    <template id="nav-template">
+        <nav class="w-full bg-white/90 backdrop-blur-md border-b border-slate-100 px-8 py-4 flex items-center justify-between sticky top-0 z-[100]">
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="logout()">
+                <div class="bg-slate-900 p-2 rounded-xl group-hover:bg-indigo-600 transition-all">
+                    <i class="fas fa-bolt-lightning text-white text-[10px]"></i>
+                </div>
+                <span class="text-xl font-black text-slate-900 tracking-tighter">Eventopia</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="hidden sm:flex items-center gap-3 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-100">
+                    <div class="w-2 h-2 rounded-full role-dot animate-pulse"></div>
+                    <div class="leading-none">
+                        <span class="user-name block text-[10px] font-black text-slate-700"></span>
+                        <span class="role-display text-[8px] font-black uppercase tracking-widest text-slate-400"></span>
+                    </div>
+                </div>
+                <button onclick="logout()" class="text-slate-400 hover:text-rose-500 transition-all p-1" title="Logout">
+                    <i class="fas fa-power-off text-lg"></i>
+                </button>
+            </div>
+        </nav>
+    </template>
+
+    <!-- 2. ADMIN VIEW -->
+    <section id="view-admin" class="page-view bg-blue-50/20">
+        <div class="nav-container"></div>
+        <div class="p-8 max-w-7xl mx-auto w-full">
+            <!-- Header -->
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-10">
+                <div>
+                    <span class="text-blue-600 font-black text-[10px] uppercase tracking-[0.3em] mb-2 block">System Console</span>
+                    <h2 class="text-4xl font-black text-slate-900 tracking-tighter leading-none">Management</h2>
+                </div>
+                <div class="flex items-center gap-3">
+                    <!-- Tab switcher -->
+                    <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
+                        <button id="admin-tab-events" onclick="switchAdminTab('events')"
+                            class="px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest bg-blue-600 text-white shadow transition-all">
+                            <i class="fas fa-calendar-alt mr-1.5"></i> Events
+                        </button>
+                        <button id="admin-tab-users" onclick="switchAdminTab('users')"
+                            class="px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-slate-400 border border-slate-100 hover:border-blue-200 hover:text-blue-600 transition-all">
+                            <i class="fas fa-users mr-1.5"></i> Users
+                        </button>
+                    </div>
+                    <button onclick="navigateTo('add-event')"
+                        class="bg-blue-600 text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-500/10 transition-all active:scale-95 flex items-center gap-2">
+                        <i class="fas fa-plus text-xs"></i> New Event
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats row (4 cards) -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+                <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Events</p>
+                    <span class="text-4xl font-black text-slate-900" id="stat-admin-events">0</span>
+                    <p class="text-[9px] text-blue-500 font-bold mt-1" id="stat-admin-active"></p>
+                </div>
+                <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Registrations</p>
+                    <span class="text-4xl font-black text-slate-900" id="stat-admin-regs">0</span>
+                </div>
+                <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Volunteers</p>
+                    <span class="text-4xl font-black text-slate-900" id="stat-admin-vols">0</span>
+                </div>
+                <div class="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Tasks</p>
+                    <span class="text-4xl font-black text-slate-900" id="stat-admin-tasks">0</span>
+                    <p class="text-[9px] text-emerald-500 font-bold mt-1" id="stat-admin-done"></p>
+                </div>
+            </div>
+
+            <!-- Dynamic content area -->
+            <div id="admin-content"></div>
+        </div>
+    </section>
+
+    <!-- 3. ADD EVENT VIEW -->
+    <section id="view-add-event" class="page-view bg-white">
+        <div class="nav-container"></div>
+        <div class="p-8 max-w-3xl mx-auto w-full">
+            <button onclick="navigateTo('admin')" class="text-slate-400 hover:text-blue-600 font-black text-[10px] uppercase tracking-widest mb-8 flex items-center gap-2 transition-all">
+                <i class="fas fa-arrow-left"></i> Back to Console
+            </button>
+            
+            <div class="bg-slate-50 p-12 rounded-[3rem] border border-slate-100">
+                <h2 class="text-4xl font-black text-slate-900 mb-10 tracking-tighter">Deploy New Event</h2>
+                <form onsubmit="handleNewEvent(event)" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Event Title</label>
+                        <input id="ev-title" required class="w-full p-4 rounded-xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-bold" placeholder="e.g. Science Fair">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Description</label>
+                        <textarea id="ev-desc" required rows="3" class="w-full p-4 rounded-xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-medium" placeholder="Event details..."></textarea>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Start Date</label>
+                        <input id="ev-date" type="datetime-local" required class="w-full p-4 rounded-xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-bold">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Reg. Deadline</label>
+                        <input id="ev-deadline" type="datetime-local" required class="w-full p-4 rounded-xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-bold">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Venue</label>
+                        <input id="ev-venue" required class="w-full p-4 rounded-xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-bold" placeholder="Room">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Max Seats</label>
+                        <input id="ev-limit" type="number" required class="w-full p-4 rounded-xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-bold" placeholder="100">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Volunteers Required</label>
+                        <input id="ev-vols" type="number" required class="w-full p-4 rounded-xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-bold" placeholder="Number of crew">
+                    </div>
+                    <button type="submit" class="md:col-span-2 py-5 bg-slate-900 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl mt-4">Publish Event</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. COORDINATOR VIEW -->
+    <section id="view-coordinator" class="page-view bg-emerald-50/20">
+        <div class="nav-container"></div>
+        <div class="p-8 max-w-7xl mx-auto w-full">
+            <!-- Header -->
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-10">
+                <div>
+                    <span class="text-emerald-600 font-black text-[10px] uppercase tracking-[0.3em] mb-2 block">Operations Hub</span>
+                    <h2 class="text-4xl font-black text-slate-900 tracking-tighter leading-none">Backstage</h2>
+                </div>
+                <!-- Tab switcher -->
+                <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-100 self-start sm:self-auto">
+                    <button id="coord-tab-tasks" onclick="switchCoordTab('tasks')"
+                        class="px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest bg-emerald-600 text-white shadow transition-all">
+                        <i class="fas fa-tasks mr-1.5"></i> Tasks
+                    </button>
+                    <button id="coord-tab-events" onclick="switchCoordTab('events')"
+                        class="px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-slate-400 border border-slate-100 hover:border-emerald-200 hover:text-emerald-600 transition-all">
+                        <i class="fas fa-calendar-alt mr-1.5"></i> Events
+                    </button>
+                    <button id="coord-tab-volunteers" onclick="switchCoordTab('volunteers')"
+                        class="px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white text-slate-400 border border-slate-100 hover:border-emerald-200 hover:text-emerald-600 transition-all">
+                        <i class="fas fa-hand-holding-heart mr-1.5"></i> Volunteers
+                    </button>
+                </div>
+            </div>
+            <!-- Dynamic content area -->
+            <div class="coord-content"></div>
+        </div>
+    </section>
+
+    <!-- 5. STUDENT VIEW -->
+    <section id="view-student" class="page-view bg-indigo-50/20">
+        <div class="nav-container"></div>
+        <div class="p-8 max-w-7xl mx-auto w-full">
+            <header class="text-center mb-16">
+                <div class="inline-block px-4 py-1.5 rounded-full bg-white border border-indigo-100 text-indigo-600 text-[9px] font-black uppercase tracking-[0.3em] mb-6 shadow-sm">
+                    Discover Events
+                </div>
+                <h2 class="text-6xl font-black text-slate-900 mb-6 tracking-tighter leading-none">Happening</h2>
+                <p class="text-slate-500 text-base max-w-xl mx-auto font-medium">Join workshops, fests, and hackathons around the campus.</p>
+            </header>
+            <div id="student-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+        </div>
+    </section>
+
+    <!-- Modal (Centered) -->
+    <div id="modal-reg" class="fixed inset-0 z-[150] hidden items-center justify-center p-6">
+        <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-xl" onclick="closeModal()"></div>
+        <div class="relative bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden">
+            <div id="reg-header" class="p-10 text-white relative">
+                <h2 id="reg-title" class="text-3xl font-black mb-2 relative z-10 leading-none">Title</h2>
+                <p id="reg-loc" class="text-[9px] font-black uppercase tracking-widest relative z-10 opacity-70"></p>
+            </div>
+            <div class="p-10" id="reg-body"></div>
+        </div>
+    </div>
+
+    <!-- Generic Modal (for coordinator panels) -->
+    <div id="modal-generic" class="fixed inset-0 z-[150] hidden items-center justify-center p-6">
+        <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-xl" onclick="closeGenericModal()"></div>
+        <div class="relative bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="px-10 py-7 border-b border-slate-100 flex items-center justify-between shrink-0">
+                <h2 id="generic-modal-title" class="text-xl font-black text-slate-900 leading-none"></h2>
+                <button onclick="closeGenericModal()" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-400 hover:text-rose-500 transition-all">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+            <div class="p-10 overflow-y-auto" id="generic-modal-body"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="app_admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eventopia | College Event Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        body, html {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f8fafc;
+        }
+
+        /* Strict View Switching to prevent white space */
+        .page-view {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .page-view.active {
+            display: flex; /* Login uses flex, others use block (set via JS) */
+            flex-direction: column;
+            animation: fadeInPage 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeInPage {
+            from { opacity: 0; transform: translateY(2px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .glass-morphism {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .event-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 35px -12px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        }
+        
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%       { transform: translateX(-8px); }
+            40%       { transform: translateX(8px); }
+            60%       { transform: translateX(-5px); }
+            80%       { transform: translateX(5px); }
+        }
+        .animate-shake { animation: shake 0.45s ease-in-out; }
+
+        /* Login page input autofill dark override */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus {
+            -webkit-text-fill-color: #fff;
+            -webkit-box-shadow: 0 0 0px 1000px rgba(255,255,255,0.05) inset;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+    </style>
+</head>
+<body class="selection:bg-indigo-100 selection:text-indigo-900">
+
+    <!-- Notification system -->
+    <div id="notification" class="fixed top-6 left-1/2 -translate-x-1/2 z-[200] bg-slate-900 text-white px-6 py-3 rounded-2xl flex items-center gap-3 shadow-2xl transition-all duration-500 opacity-0 translate-y-[-120%] pointer-events-none border border-white/10">
+        <i class="fas fa-sparkles text-indigo-400 text-sm"></i>
+        <span id="notification-text" class="text-xs font-bold"></span>
+    </div>
+
+    <!-- 1. LOGIN PORTAL (CENTERED FULL SCREEN) -->
+    <section id="view-login" class="page-view active h-screen bg-slate-950 flex items-center justify-center relative overflow-hidden">
+        <!-- Background Glow -->
+        <div class="absolute top-[-5%] left-[-5%] w-[400px] h-[400px] bg-indigo-600/20 rounded-full blur-[100px]"></div>
+        <div class="absolute bottom-[-5%] right-[-5%] w-[400px] h-[400px] bg-rose-600/20 rounded-full blur-[100px]"></div>
+        
+        <div class="max-w-sm w-full glass-morphism p-10 rounded-[2.5rem] shadow-2xl text-center relative z-10 border border-white/5 mx-4">
+            <div class="mb-6 flex justify-center">
+                <div class="btn-gradient p-5 rounded-3xl shadow-xl shadow-indigo-500/20 transform -rotate-3">
+                    <i class="fas fa-bolt-lightning text-3xl text-white"></i>
+                </div>
+            </div>
+            <h1 class="text-4xl font-black text-white mb-2 tracking-tighter">Eventopia</h1>
+            <p class="text-indigo-200/40 mb-8 font-medium text-sm">Elevate your campus experience.</p>
+            
+            <div class="space-y-3">
+                <button onclick="showLoginPage('admin')" class="w-full group flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all">
+                    <div class="flex items-center gap-4">
+                        <span class="w-10 h-10 flex items-center justify-center rounded-xl bg-blue-500 text-white shadow-md"><i class="fas fa-user-shield text-sm"></i></span>
+                        <div class="text-left leading-none">
+                            <span class="block text-white font-bold text-base">Admin</span>
+                            <span class="block text-slate-500 text-[10px] mt-0.5">System Console</span>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-slate-600 text-xs group-hover:text-white transition-all"></i>
+                </button>
+
+                <button onclick="showLoginPage('coordinator')" class="w-full group flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all">
+                    <div class="flex items-center gap-4">
+                        <span class="w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-500 text-white shadow-md"><i class="fas fa-people-group text-sm"></i></span>
+                        <div class="text-left leading-none">
+                            <span class="block text-white font-bold text-base">Coordinator</span>
+                            <span class="block text-slate-500 text-[10px] mt-0.5">Operations Hub</span>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-slate-600 text-xs group-hover:text-white transition-all"></i>
+                </button>
+
+                <button onclick="showLoginPage('student')" class="w-full group flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all">
+                    <div class="flex items-center gap-4">
+                        <span class="w-10 h-10 flex items-center justify-center rounded-xl bg-indigo-500 text-white shadow-md"><i class="fas fa-graduation-cap text-sm"></i></span>
+                        <div class="text-left leading-none">
+                            <span class="block text-white font-bold text-base">Student</span>
+                            <span class="block text-slate-500 text-[10px] mt-0.5">Campus Explorer</span>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-slate-600 text-xs group-hover:text-white transition-all"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 1b. ADMIN LOGIN PAGE -->
+    <section id="view-login-admin" class="page-view h-screen bg-slate-950 flex items-center justify-center relative overflow-hidden">
+        <div class="absolute top-[-5%] right-[-5%] w-[500px] h-[500px] bg-blue-600/15 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-indigo-600/10 rounded-full blur-[100px]"></div>
+
+        <div class="max-w-sm w-full glass-morphism p-10 rounded-[2.5rem] shadow-2xl relative z-10 border border-white/5 mx-4">
+            <button onclick="showView('login')" class="flex items-center gap-2 text-slate-500 hover:text-white text-[10px] font-black uppercase tracking-widest mb-8 transition-all">
+                <i class="fas fa-arrow-left text-xs"></i> Back
+            </button>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-14 h-14 flex items-center justify-center rounded-2xl bg-blue-500 shadow-lg shadow-blue-500/30">
+                    <i class="fas fa-user-shield text-xl text-white"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-white tracking-tighter leading-none">Admin Login</h2>
+                    <p class="text-slate-500 text-[10px] font-bold mt-1">System Console Access</p>
+                </div>
+            </div>
+
+            <form onsubmit="handleLogin(event,'admin')" class="space-y-4">
+                <div>
+                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Username</label>
+                    <div class="relative">
+                        <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-xs"></i>
+                        <input id="admin-username" type="text" required placeholder="admin" autocomplete="username"
+                            class="w-full pl-10 pr-4 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-600 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Password</label>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-xs"></i>
+                        <input id="admin-password" type="password" required placeholder="••••••••" autocomplete="current-password"
+                            class="w-full pl-10 pr-12 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-600 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                        <button type="button" onclick="togglePassword('admin-password', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400 transition-all">
+                            <i class="fas fa-eye text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="admin-login-error" class="hidden flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl">
+                    <i class="fas fa-circle-exclamation text-rose-400 text-xs"></i>
+                    <span class="text-rose-400 text-[10px] font-bold">Invalid credentials. Try admin / admin123</span>
+                </div>
+                <button type="submit" class="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-blue-500/20 active:scale-95 mt-2">
+                    Access Console <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                </button>
+            </form>
+            <p class="text-center text-slate-600 text-[9px] font-bold mt-6">Demo: <span class="text-slate-400">admin</span> / <span class="text-slate-400">admin123</span></p>
+        </div>
+    </section>
+
+    <!-- 1c. COORDINATOR LOGIN PAGE -->
+    <section id="view-login-coordinator" class="page-view h-screen bg-slate-950 flex items-center justify-center relative overflow-hidden">
+        <div class="absolute top-[-5%] left-[-5%] w-[500px] h-[500px] bg-emerald-600/15 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-teal-600/10 rounded-full blur-[100px]"></div>
+
+        <div class="max-w-sm w-full glass-morphism p-10 rounded-[2.5rem] shadow-2xl relative z-10 border border-white/5 mx-4">
+            <button onclick="showView('login')" class="flex items-center gap-2 text-slate-500 hover:text-white text-[10px] font-black uppercase tracking-widest mb-8 transition-all">
+                <i class="fas fa-arrow-left text-xs"></i> Back
+            </button>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-14 h-14 flex items-center justify-center rounded-2xl bg-emerald-500 shadow-lg shadow-emerald-500/30">
+                    <i class="fas fa-people-group text-xl text-white"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-white tracking-tighter leading-none">Coordinator</h2>
+                    <p class="text-slate-500 text-[10px] font-bold mt-1">Operations Hub Access</p>
+                </div>
+            </div>
+
+            <form onsubmit="handleLogin(event,'coordinator')" class="space-y-4">
+                <div>
+                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Username</label>
+                    <div class="relative">
+                        <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-xs"></i>
+                        <input id="coord-username" type="text" required placeholder="coordinator" autocomplete="username"
+                            class="w-full pl-10 pr-4 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-600 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Password</label>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-xs"></i>
+                        <input id="coord-password" type="password" required placeholder="••••••••" autocomplete="current-password"
+                            class="w-full pl-10 pr-12 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-600 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all">
+                        <button type="button" onclick="togglePassword('coord-password', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400 transition-all">
+                            <i class="fas fa-eye text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="coord-login-error" class="hidden flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl">
+                    <i class="fas fa-circle-exclamation text-rose-400 text-xs"></i>
+                    <span class="text-rose-400 text-[10px] font-bold">Invalid credentials. Try coordinator / coord123</span>
+                </div>
+                <button type="submit" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-emerald-500/20 active:scale-95 mt-2">
+                    Access Hub <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                </button>
+            </form>
+            <p class="text-center text-slate-600 text-[9px] font-bold mt-6">Demo: <span class="text-slate-400">coordinator</span> / <span class="text-slate-400">coord123</span></p>
+        </div>
+    </section>
+
+    <!-- 1d. STUDENT LOGIN PAGE -->
+    <section id="view-login-student" class="page-view h-screen bg-slate-950 flex items-center justify-center relative overflow-hidden">
+        <div class="absolute top-[-5%] right-[-5%] w-[500px] h-[500px] bg-indigo-600/15 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-violet-600/10 rounded-full blur-[100px]"></div>
+
+        <div class="max-w-sm w-full glass-morphism p-10 rounded-[2.5rem] shadow-2xl relative z-10 border border-white/5 mx-4">
+            <button onclick="showView('login')" class="flex items-center gap-2 text-slate-500 hover:text-white text-[10px] font-black uppercase tracking-widest mb-8 transition-all">
+                <i class="fas fa-arrow-left text-xs"></i> Back
+            </button>
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-14 h-14 flex items-center justify-center rounded-2xl bg-indigo-500 shadow-lg shadow-indigo-500/30">
+                    <i class="fas fa-graduation-cap text-xl text-white"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-white tracking-tighter leading-none">Student Login</h2>
+                    <p class="text-slate-500 text-[10px] font-bold mt-1">Campus Explorer Access</p>
+                </div>
+            </div>
+
+            <form onsubmit="handleLogin(event,'student')" class="space-y-4">
+                <div>
+                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Student ID / Email</label>
+                    <div class="relative">
+                        <i class="fas fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-xs"></i>
+                        <input id="student-username" type="text" required placeholder="student@college.edu" autocomplete="username"
+                            class="w-full pl-10 pr-4 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-600 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Password</label>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-xs"></i>
+                        <input id="student-password" type="password" required placeholder="••••••••" autocomplete="current-password"
+                            class="w-full pl-10 pr-12 py-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-600 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+                        <button type="button" onclick="togglePassword('student-password', this)" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400 transition-all">
+                            <i class="fas fa-eye text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="student-login-error" class="hidden flex items-center gap-2 p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl">
+                    <i class="fas fa-circle-exclamation text-rose-400 text-xs"></i>
+                    <span class="text-rose-400 text-[10px] font-bold">Invalid credentials. Try student / student123</span>
+                </div>
+                <button type="submit" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-xl shadow-indigo-500/20 active:scale-95 mt-2">
+                    Explore Campus <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                </button>
+            </form>
+            <p class="text-center text-slate-600 text-[9px] font-bold mt-6">Demo: <span class="text-slate-400">student</span> / <span class="text-slate-400">student123</span></p>
+        </div>
+    </section>
+
+    <!-- Navigation Template -->
+    <template id="nav-template">
+        <nav class="w-full bg-white/90 backdrop-blur-md border-b border-slate-100 px-8 py-4 flex items-center justify-between sticky top-0 z-[100]">
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="logout()">
+                <div class="bg-slate-900 p-2 rounded-xl group-hover:bg-indigo-600 transition-all">
+                    <i class="fas fa-bolt-lightning text-white text-[10px]"></i>
+                </div>
+                <span class="text-xl font-black text-slate-900 tracking-tighter">Eventopia</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="hidden sm:flex items-center gap-3 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-100">
+                    <div class="w-2 h-2 rounded-full role-dot animate-pulse"></div>
+                    <span class="role-display text-[9px] font-black uppercase tracking-widest text-slate-500"></span>
+                </div>
+                <button onclick="logout()" class="text-slate-400 hover:text-rose-500 transition-all p-1">
+                    <i class="fas fa-power-off text-lg"></i>
+                </button>
+            </div>
+        </nav>
+    </template>
+
+    <!-- 2. ADMIN VIEW -->
+    <section id="view-admin" class="page-view bg-blue-50/20">
+        <div class="nav-container"></div>
+        <div class="p-8 max-w-7xl mx-auto w-full">
+            <header class="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-12">
+                <div>
+                    <span class="text-blue-600 font-black text-[10px] uppercase tracking-[0.3em] mb-2 block">System Console</span>
+                    <h2 class="text-4xl font-black text-slate-900 tracking-tighter leading-none">Management</h2>
+                </div>
+                <button onclick="navigateTo('add-event')" class="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-500/10 transition-all active:scale-95 flex items-center gap-3">
+                    <i class="fas fa-plus text-xs"></i> New Event
+                </button>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Total Hubs</p>
+                    <span class="text-4xl font-black text-slate-900" id="stat-admin-events">0</span>
+                </div>
+                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Registrations</p>
+                    <span class="text-4xl font-black text-slate-900" id="stat-admin-regs">0</span>
+                </div>
+                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Assignments</p>
+                    <span class="text-4xl font-black text-slate-900" id="stat-admin-tasks">0</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left min-w-[700px]">
+                        <thead>
+                            <tr class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                                <th class="px-8 py-5">Event</th>
+                                <th class="px-8 py-5">Status</th>
+                                <th class="px-8 py-5">Engagement</th>
+                                <th class="px-8 py-5 text-right">Operations</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table" class="divide-y divide-slate-50"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. ADD EVENT VIEW -->
+    <section id="view-add-event" class="page-view bg-white">
+        <div class="nav-container"></div>
+        <div class="p-8 max-w-3xl mx-auto w-full">
+            <button onclick="navigateTo('admin')" class="text-slate-400 hover:text-blue-600 font-black text-[10px] uppercase tracking-widest mb-8 flex items-center gap-2 transition-all">
+                <i class="fas fa-arrow-left"></i> Back to Console
+            </button>
+            
+            <div class="bg-slate-50 p-12 rounded-[3rem] border border-slate-100">
+                <h2 class="text-4xl font-black text-slate-900 mb-10 tracking-tighter">Deploy New Event</h2>
+                <form onsubmit="handleNewEvent(event)" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Event Title</label>
+                        <input id="ev-title" required class="w-full p-4 rounded-xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-bold" placeholder="e.g. Science Fair">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Description</label>
+                        <textarea id="ev-desc" required rows="3" class="w-full p-4 rounded-xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-medium" placeholder="Event details..."></textarea>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Start Date</label>
+                        <input id="ev-date" type="datetime-local" required class="w-full p-4 rounded-xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-bold">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Reg. Deadline</label>
+                        <input id="ev-deadline" type="datetime-local" required class="w-full p-4 rounded-xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-bold">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Venue</label>
+                        <input id="ev-venue" required class="w-full p-4 rounded-xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-bold" placeholder="Room">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Max Seats</label>
+                        <input id="ev-limit" type="number" required class="w-full p-4 rounded-xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-bold" placeholder="100">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Volunteers Required</label>
+                        <input id="ev-vols" type="number" required class="w-full p-4 rounded-xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-bold" placeholder="Number of crew">
+                    </div>
+                    <button type="submit" class="md:col-span-2 py-5 bg-slate-900 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:bg-blue-600 transition-all shadow-xl mt-4">Publish Event</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. COORDINATOR VIEW -->
+    <section id="view-coordinator" class="page-view bg-emerald-50/20">
+        <div class="nav-container"></div>
+        <div class="p-8 max-w-7xl mx-auto w-full">
+            <div class="mb-12">
+                <span class="text-emerald-600 font-black text-[10px] uppercase tracking-[0.3em] mb-2 block">Operations Hub</span>
+                <h2 class="text-4xl font-black text-slate-900 tracking-tighter leading-none">Backstage</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                <div class="lg:col-span-2 space-y-8">
+                    <h3 class="text-xl font-black text-slate-800 flex items-center gap-4">
+                        <i class="fas fa-tasks text-emerald-500 text-base"></i> Active Assignments
+                    </h3>
+                    <div id="coord-tasks" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+                </div>
+                <div class="bg-slate-900 p-10 rounded-[2.5rem] shadow-2xl text-white">
+                    <h3 class="text-xl font-black mb-10">Crew Tracker</h3>
+                    <div id="coord-stats" class="space-y-10"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. STUDENT VIEW -->
+    <section id="view-student" class="page-view bg-indigo-50/20">
+        <div class="nav-container"></div>
+        <div class="p-8 max-w-7xl mx-auto w-full">
+            <header class="text-center mb-16">
+                <div class="inline-block px-4 py-1.5 rounded-full bg-white border border-indigo-100 text-indigo-600 text-[9px] font-black uppercase tracking-[0.3em] mb-6 shadow-sm">
+                    Discover Events
+                </div>
+                <h2 class="text-6xl font-black text-slate-900 mb-6 tracking-tighter leading-none">Happening</h2>
+                <p class="text-slate-500 text-base max-w-xl mx-auto font-medium">Join workshops, fests, and hackathons around the campus.</p>
+            </header>
+            <div id="student-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+        </div>
+    </section>
+
+    <!-- Modal (Centered) -->
+    <div id="modal-reg" class="fixed inset-0 z-[150] hidden items-center justify-center p-6">
+        <div class="absolute inset-0 bg-slate-950/90 backdrop-blur-xl" onclick="closeModal()"></div>
+        <div class="relative bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden">
+            <div id="reg-header" class="p-10 text-white relative">
+                <h2 id="reg-title" class="text-3xl font-black mb-2 relative z-10 leading-none">Title</h2>
+                <p id="reg-loc" class="text-[9px] font-black uppercase tracking-widest relative z-10 opacity-70"></p>
+            </div>
+            <div class="p-10" id="reg-body"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- Credentials Store ---
+        const CREDENTIALS = {
+            admin:       { username: 'admin',       password: 'admin123' },
+            coordinator: { username: 'coordinator', password: 'coord123' },
+            student:     { username: 'student',     password: 'student123' }
+        };
+
+        // --- System State ---
+        let events = [
+            {
+                id: 'ev-1',
+                title: 'Visionary AI 2.0',
+                description: 'Explore generative AI keynote speeches and hands-on LLM workshops.',
+                date: '2025-11-20T10:00',
+                deadline: '2025-11-15T23:59',
+                location: 'Seminar Hall 4',
+                limit: 150,
+                registrations: ['u1', 'u2', 'u3'],
+                volsNeeded: 12,
+                tasks: [{ id: 't1', title: 'Prepare Technical Desk', coordinator: 'Sarah', status: 'pending' }],
+                color: 'bg-indigo-600'
+            },
+            {
+                id: 'ev-2',
+                title: 'Aurora Night',
+                description: 'Annual cultural event with music, talent shows, and food stalls.',
+                date: '2025-12-05T18:00',
+                deadline: '2025-11-30T12:00',
+                location: 'Open Arena',
+                limit: 5,
+                registrations: Array(5).fill('full'),
+                volsNeeded: 40,
+                tasks: [],
+                color: 'bg-rose-600'
+            }
+        ];
+
+        let currentRole = null;
+
+        // --- Navigation ---
+        function showView(viewId) {
+            document.querySelectorAll('.page-view').forEach(v => {
+                v.style.display = 'none';
+                v.classList.remove('active');
+            });
+            const target = document.getElementById(`view-${viewId}`);
+            if (!target) return;
+            target.style.display = 'flex';
+            target.classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function showLoginPage(role) {
+            showView(`login-${role}`);
+            // Clear previous inputs and errors
+            const prefixMap = { admin: 'admin', coordinator: 'coord', student: 'student' };
+            const p = prefixMap[role];
+            const uEl = document.getElementById(`${p}-username`);
+            const pwEl = document.getElementById(`${p}-password`);
+            const errEl = document.getElementById(`${p}-login-error`);
+            if (uEl) uEl.value = '';
+            if (pwEl) pwEl.value = '';
+            if (errEl) errEl.classList.add('hidden');
+        }
+
+        function handleLogin(e, role) {
+            e.preventDefault();
+            const prefixMap = { admin: 'admin', coordinator: 'coord', student: 'student' };
+            const p = prefixMap[role];
+            const username = document.getElementById(`${p}-username`).value.trim();
+            const password = document.getElementById(`${p}-password`).value;
+            const errEl = document.getElementById(`${p}-login-error`);
+
+            const creds = CREDENTIALS[role];
+            if (username === creds.username && password === creds.password) {
+                errEl.classList.add('hidden');
+                navigateTo(role);
+            } else {
+                errEl.classList.remove('hidden');
+                // Shake animation
+                const form = e.target;
+                form.classList.add('animate-shake');
+                setTimeout(() => form.classList.remove('animate-shake'), 500);
+            }
+        }
+
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        function navigateTo(role) {
+            currentRole = role;
+            
+            // Hide all pages strictly
+            document.querySelectorAll('.page-view').forEach(v => {
+                v.style.display = 'none';
+                v.classList.remove('active');
+            });
+            
+            const target = document.getElementById(`view-${role}`);
+            
+            // Reset Display style based on view type
+            if(role === 'login') {
+                target.style.display = 'flex';
+            } else {
+                target.style.display = 'block';
+                // Inject Navbar
+                const navContainer = target.querySelector('.nav-container');
+                if(navContainer) {
+                    const template = document.getElementById('nav-template');
+                    const content = template.content.cloneNode(true);
+                    
+                    const roleText = content.querySelector('.role-display');
+                    roleText.textContent = (role === 'add-event') ? 'Admin' : role;
+                    
+                    const dot = content.querySelector('.role-dot');
+                    if(role.includes('admin') || role === 'add-event') dot.classList.add('bg-blue-500');
+                    if(role === 'coordinator') dot.classList.add('bg-emerald-500');
+                    if(role === 'student') dot.classList.add('bg-indigo-500');
+
+                    navContainer.innerHTML = '';
+                    navContainer.appendChild(content);
+                }
+            }
+
+            target.classList.add('active');
+            window.scrollTo(0, 0); // Jump to top
+            renderView();
+            if(role !== 'login') notify(`Welcome to ${role.charAt(0).toUpperCase() + role.slice(1)} Portal`);
+        }
+
+        function logout() {
+            currentRole = null;
+            showView('login');
+        }
+
+        function notify(msg) {
+            const t = document.getElementById('notification');
+            document.getElementById('notification-text').textContent = msg;
+            t.style.opacity = '1';
+            t.style.transform = 'translateY(0) translateX(-50%)';
+            setTimeout(() => {
+                t.style.opacity = '0';
+                t.style.transform = 'translateY(-120%) translateX(-50%)';
+            }, 3000);
+        }
+
+        function isOpen(ev) {
+            const now = new Date();
+            const dead = new Date(ev.deadline);
+            return (ev.registrations.length < ev.limit) && (now < dead);
+        }
+
+        function formatDate(str) {
+            return new Date(str).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        // --- UI Rendering ---
+        function renderView() {
+            if(currentRole === 'student') renderStudent();
+            if(currentRole === 'admin') renderAdmin();
+            if(currentRole === 'coordinator') renderCoordinator();
+        }
+
+        function renderStudent() {
+            const grid = document.getElementById('student-grid');
+            grid.innerHTML = events.map(ev => {
+                const active = isOpen(ev);
+                return `
+                    <div class="event-card group bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col transition-all duration-300">
+                        <div class="h-40 ${ev.color} relative p-8 flex flex-col justify-end">
+                            <span class="relative z-10 px-3 py-1 bg-black/10 backdrop-blur-md text-white text-[9px] font-black rounded-xl uppercase tracking-widest border border-white/20 w-fit">
+                                ${ev.location}
+                            </span>
+                        </div>
+                        <div class="p-8 flex-grow">
+                            <h3 class="text-xl font-black text-slate-800 mb-3 leading-tight">${ev.title}</h3>
+                            <p class="text-slate-500 text-xs leading-relaxed mb-6 line-clamp-2">${ev.description}</p>
+                            <div class="space-y-3 mb-8 text-[11px] font-bold text-slate-500">
+                                <div class="flex items-center gap-3"><i class="fas fa-clock text-indigo-500"></i> ${formatDate(ev.date)}</div>
+                                <div class="flex items-center gap-3"><i class="fas fa-user-friends text-indigo-500"></i> ${ev.registrations.length}/${ev.limit} Claimed</div>
+                            </div>
+                            <button onclick="openRegModal('${ev.id}')" class="w-full py-4 rounded-2xl font-black text-[9px] uppercase tracking-widest transition-all ${active ? 'bg-slate-900 text-white hover:bg-indigo-600' : 'bg-slate-100 text-slate-300 cursor-not-allowed'}">
+                                ${active ? 'View & Register' : 'Closed'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderAdmin() {
+            document.getElementById('stat-admin-events').textContent = events.length;
+            document.getElementById('stat-admin-regs').textContent = events.reduce((s, e) => s + e.registrations.length, 0);
+            document.getElementById('stat-admin-tasks').textContent = events.reduce((s, e) => s + e.tasks.length, 0);
+
+            const table = document.getElementById('admin-table');
+            table.innerHTML = events.map(ev => `
+                <tr class="hover:bg-blue-50/30 transition-all">
+                    <td class="px-8 py-6">
+                        <div class="font-black text-slate-900 text-base leading-none mb-1">${ev.title}</div>
+                        <div class="text-[9px] text-slate-400 uppercase font-black tracking-widest">${ev.location}</div>
+                    </td>
+                    <td class="px-8 py-6">
+                        <span class="px-3 py-1 rounded-lg text-[8px] font-black tracking-widest uppercase ${isOpen(ev) ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                            ${isOpen(ev) ? 'Active' : 'Locked'}
+                        </span>
+                    </td>
+                    <td class="px-8 py-6 text-xs font-bold text-slate-500">
+                        ${ev.registrations.length} / ${ev.limit}
+                    </td>
+                    <td class="px-8 py-6 text-right">
+                        <button onclick="delegateWork('${ev.id}')" class="bg-slate-900 text-white hover:bg-blue-600 px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest">
+                            Delegate
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderCoordinator() {
+            const name = "Sarah";
+            const tasks = events.flatMap(ev => ev.tasks.filter(t => t.coordinator === name).map(t => ({...t, evName: ev.title})));
+            
+            document.getElementById('coord-tasks').innerHTML = tasks.length ? tasks.map(t => `
+                <div class="p-8 bg-white rounded-[2rem] border border-slate-100 shadow-sm">
+                    <span class="px-2 py-1 rounded-lg text-[8px] font-black tracking-widest uppercase ${t.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'} mb-4 block w-fit">
+                        ${t.status}
+                    </span>
+                    <p class="font-black text-slate-900 text-lg mb-1">${t.title}</p>
+                    <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest">${t.evName}</p>
+                </div>
+            `).join('') : '<div class="col-span-full py-12 text-center text-slate-300 font-black text-xs uppercase">No active duties</div>';
+
+            document.getElementById('coord-stats').innerHTML = events.map(ev => `
+                <div class="space-y-3">
+                    <div class="flex justify-between text-[9px] font-black uppercase tracking-widest text-slate-500">
+                        <span>${ev.title}</span>
+                        <span class="text-emerald-400">${ev.volsNeeded} Crew</span>
+                    </div>
+                    <div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                        <div class="h-full bg-emerald-500" style="width: 40%"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- Event Handlers ---
+        function handleNewEvent(e) {
+            e.preventDefault();
+            const colors = ['bg-indigo-600', 'bg-rose-600', 'bg-blue-600', 'bg-emerald-600'];
+            const newEv = {
+                id: 'ev-' + Date.now(),
+                title: document.getElementById('ev-title').value,
+                description: document.getElementById('ev-desc').value,
+                date: document.getElementById('ev-date').value,
+                deadline: document.getElementById('ev-deadline').value,
+                location: document.getElementById('ev-venue').value,
+                limit: parseInt(document.getElementById('ev-limit').value),
+                volsNeeded: parseInt(document.getElementById('ev-vols').value),
+                registrations: [],
+                tasks: [],
+                color: colors[Math.floor(Math.random() * colors.length)]
+            };
+            events.push(newEv);
+            navigateTo('admin');
+            e.target.reset();
+        }
+
+        function openRegModal(id) {
+            const ev = events.find(e => e.id === id);
+            const active = isOpen(ev);
+            
+            document.getElementById('reg-header').className = `p-10 text-white relative ${ev.color}`;
+            document.getElementById('reg-title').textContent = ev.title;
+            document.getElementById('reg-loc').textContent = ev.location;
+            
+            let html = `
+                <div class="grid grid-cols-2 gap-8 mb-8 text-xs">
+                    <div>
+                        <p class="text-[8px] text-slate-400 font-black uppercase mb-1">Date</p>
+                        <p class="font-black text-slate-800 text-base">${formatDate(ev.date)}</p>
+                    </div>
+                    <div>
+                        <p class="text-[8px] text-slate-400 font-black uppercase mb-1">Deadline</p>
+                        <p class="font-black text-rose-500 text-base">${formatDate(ev.deadline)}</p>
+                    </div>
+                </div>
+                <p class="text-slate-600 text-sm font-medium mb-10">${ev.description}</p>
+            `;
+
+            if(active) {
+                html += `
+                    <form onsubmit="confirmReg(event, '${ev.id}')" class="space-y-4">
+                        <input required type="text" placeholder="Full Name" class="w-full p-4 rounded-xl bg-slate-50 border-none outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-sm">
+                        <input required type="email" placeholder="College Email" class="w-full p-4 rounded-xl bg-slate-50 border-none outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-sm">
+                        <button type="submit" class="w-full py-5 bg-slate-900 text-white rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest shadow-lg">Confirm Spot</button>
+                    </form>
+                `;
+            } else {
+                html += `
+                    <div class="p-8 bg-rose-50 border border-rose-100 rounded-[2rem] text-center">
+                        <i class="fas fa-lock text-rose-500 text-2xl mb-4"></i>
+                        <p class="text-rose-600 font-black text-[10px] uppercase tracking-widest">Registration Closed</p>
+                    </div>
+                `;
+            }
+
+            document.getElementById('reg-body').innerHTML = html + `<button onclick="closeModal()" class="w-full mt-6 text-slate-300 hover:text-slate-500 text-[9px] font-black uppercase tracking-widest transition-colors">Dismiss</button>`;
+            document.getElementById('modal-reg').classList.remove('hidden');
+            document.getElementById('modal-reg').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-reg').classList.add('hidden');
+        }
+
+        function confirmReg(e, id) {
+            e.preventDefault();
+            events = events.map(ev => ev.id === id ? {...ev, registrations: [...ev.registrations, 'u-new']} : ev);
+            closeModal();
+            renderView();
+            notify("Registration Successful!");
+        }
+
+        function delegateWork(id) {
+            const task = prompt("Task:");
+            const user = prompt("Coordinator:");
+            if(task && user) {
+                events = events.map(ev => ev.id === id ? {...ev, tasks: [...ev.tasks, {id: Date.now(), title: task, coordinator: user, status: 'pending'}]} : ev);
+                renderView();
+                notify(`Task assigned to ${user}`);
+            }
+        }
+    </script>
+</body>
+</html>
